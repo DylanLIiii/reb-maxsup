@@ -1,0 +1,4 @@
+- While training, should set mixup and cutmix related parameters to 0 
+- turn off amp because A100 can accelarete trainig speed by default amp training
+- Training recipts see https://github.com/pytorch/vision/tree/main/references/classification
+- Torchvision Dataset: https://pytorch.org/vision/main/datasets.html
