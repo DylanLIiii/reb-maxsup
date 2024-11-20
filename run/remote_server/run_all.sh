@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Check if experiment name is provided
-(
+
 if [ $# -lt 4 ]; then
     echo "Usage: $0 <experiment_name> <label_smoothing> <max_sup> <decompose>"
     exit 1
@@ -32,4 +32,3 @@ for script in mobilenetv2.sh resnet18.sh resnet101.sh; do
 done
 
 echo "All scripts completed!" 
-) | tee -a "${OUTPUT_DIR}/${EXPERIMENT_NAME}_outputs.txt"
