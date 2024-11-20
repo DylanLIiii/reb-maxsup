@@ -17,6 +17,17 @@ from transforms import get_mixup_cutmix
 import copy
 import numpy as np
 
+def logit_penalty(labels, logits, weights, beta):
+    xent = torch.nn.functional.cross_entropy(logits, labels, reduction='none')
+    xent = xent * weights
+    xent = torch.mean(xent)
+
+    penalty = beta * torch.sum(logits ** 2, dim=-1) / 2
+    penalty = penalty * weights
+    penalty = torch.mean(penalty)
+
+    return xent + penalty, logits
+
 def dist_print(*args, **kwargs):
     if torch.distributed.is_initialized():
         if torch.distributed.get_rank() == 0:
@@ -71,15 +82,18 @@ def label_smoothing(logits: torch.Tensor, target: torch.Tensor, smoothing_rate: 
         return aux_loss.mean() * smoothing_rate
 
 def which_training_mode(args):
-    if args.label_smoothing > 0:
-        if args.decompose:
-            return "ls_decompose"
-        else:
-            return "ls_no_decompose"
-    elif args.max_sup:
-        return "max_sup"
+    if args.logit_penalty:
+        return "logit_penalty"
     else:
-        return "no_ls"
+        if args.label_smoothing > 0:
+            if args.decompose:
+                return "ls_decompose"
+            else:
+                return "ls_no_decompose"
+        elif args.max_sup:
+            return "max_sup"
+        else:
+            return "no_ls"
 
 def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, args, model_ema=None, scaler=None):
     model.train()
@@ -97,25 +111,28 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
         image, target = image.to(device), target.to(device)
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             output = model(image)
-            if not args.max_sup and args.label_smoothing == 0:
-                # This is no ls
-                #dist_print("training with no ls")
-                loss = criterion(output, target)
-                losses.append(loss.item())
-            elif args.label_smoothing > 0:
-                if args.decompose:
-                    #dist_print("training with label smoothing and decomposition")
-                    aux_loss = label_smoothing(output, target, args.label_smoothing, args.decompose)
-                else:
-                    #dist_print("training with label smoothing and no decomposition")
-                    aux_loss = label_smoothing(output, target, args.label_smoothing, args.decompose)
-                ce_loss = criterion(output, target)
-                loss = aux_loss + ce_loss
+            if bool(args.logit_penalty):
+                loss = logit_penalty(target, output, 1.0, 6e-4)
             else:
-                #dist_print("training with max_sup")
-                aux_loss = max_suppression(output, epoch, args.begin_lambda, args.end_lambda, args.epochs)
-                ce_loss = criterion(output, target)
-                loss = aux_loss + ce_loss
+                if not args.max_sup and args.label_smoothing == 0:
+                    # This is no ls
+                    #dist_print("training with no ls")
+                    loss = criterion(output, target)
+                    losses.append(loss.item())
+                elif args.label_smoothing > 0:
+                    if args.decompose:
+                        #dist_print("training with label smoothing and decomposition")
+                        aux_loss = label_smoothing(output, target, args.label_smoothing, args.decompose)
+                    else:
+                        #dist_print("training with label smoothing and no decomposition")
+                        aux_loss = label_smoothing(output, target, args.label_smoothing, args.decompose)
+                    ce_loss = criterion(output, target)
+                    loss = aux_loss + ce_loss
+                else:
+                    #dist_print("training with max_sup")
+                    aux_loss = max_suppression(output, epoch, args.begin_lambda, args.end_lambda, args.epochs)
+                    ce_loss = criterion(output, target)
+                    loss = aux_loss + ce_loss
 
         optimizer.zero_grad()
         if scaler is not None:
@@ -635,6 +652,7 @@ def get_args_parser(add_help=True):
     # For rebuttle experiments
     parser.add_argument("--max-sup", default=0, type=int, help="whether to use maximum suppression")
     parser.add_argument("--decompose", default=0, type=int, help="whether to use composition")
+    parser.add_argument("--logit-penalty", default=0, type=int, help="whether to use normalization")
 
     return parser
 
