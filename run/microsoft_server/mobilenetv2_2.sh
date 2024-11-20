@@ -4,6 +4,7 @@ MODEL="mobilenet_v2"
 LABLESMOOTHING=$2
 MAXSUP=$3
 DECOMPOSE=$4
+LOGITPENALTY=$5
 
 DATA_PATH="/datadrive/hengl/imagenet1k/ILSVRC/Data/CLS-LOC/"
 OUTPUT_DIR="/datadrive2/hengl/rebuttals"
@@ -12,8 +13,8 @@ mkdir -p "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}"
 touch "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}/outputs.txt"
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4 /home/hengl/lbsm/rebuttals/train.py \
-  --model ${MODEL} \
   --amp \
+  --model ${MODEL} \
   --data-path "${DATA_PATH}" \
   --workers 12 \
   --batch-size 512 \
@@ -33,4 +34,5 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4
   --label-smoothing ${LABLESMOOTHING} \
   --decompose ${DECOMPOSE} \
   --max-sup ${MAXSUP} \
+  --logit-penalty ${LOGITPENALTY} \
   | tee "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}/outputs.txt"
