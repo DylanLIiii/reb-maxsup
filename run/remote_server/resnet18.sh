@@ -15,6 +15,7 @@ mkdir -p "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}"
 touch "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}/outputs.txt"
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4 /home/couser/reb-maxsup/train.py \
+  --amp \
   --model ${MODEL} \
   --data-path "${DATA_PATH}" \
   --workers 16 \

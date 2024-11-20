@@ -15,6 +15,7 @@ touch "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}/outputs.txt"
 
 CUDA_VISIBLE_DEVICES=4,5,6,7 torchrun --standalone --nnodes=1 --nproc_per_node=4 /home/couser/reb-maxsup/train.py \
   --model ${MODEL} \
+  --amp \
   --data-path "${DATA_PATH}" \
   --workers 16 \
   --batch-size 512 \
