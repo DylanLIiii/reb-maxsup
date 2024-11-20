@@ -5,6 +5,7 @@ EPOCHS=90
 LABLESMOOTHING=$2
 MAXSUP=$3
 DECOMPOSE=$4
+LOGITPENALTY=$5
 
 DATA_PATH="/home/couser/imagenet/data"
 OUTPUT_DIR="/home/couser/rebuttals"
@@ -35,4 +36,5 @@ CUDA_VISIBLE_DEVICES=4,5,6,7 torchrun --standalone --nnodes=1 --nproc_per_node=4
   --label-smoothing ${LABLESMOOTHING} \
   --decompose ${DECOMPOSE} \
   --max-sup ${MAXSUP} \
+  --logit-penalty ${LOGITPENALTY} \
   | tee "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}/outputs.txt"
