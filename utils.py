@@ -462,3 +462,30 @@ def set_weight_decay(
         if len(params[key]) > 0:
             param_groups.append({"params": params[key], "weight_decay": params_weight_decay[key]})
     return param_groups
+
+def seed_everything(seed=0):
+    """
+    Sets the seed for Python's random module, NumPy, and PyTorch to ensure reproducibility.
+
+    Parameters:
+    - seed: An integer used as the seed for random number generators. Default is 3407.
+
+    Raises:
+    - ImportError: If torch is not installed.
+    """
+    import random
+    import os 
+    import numpy as np
+    try:
+        random.seed(seed)
+        os.environ["PYTHONHASHSEED"] = str(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = True
+        else:
+            print("CUDA is not available. Seeding only for CPU.")
+    except ImportError:
+        print("torch is not installed. Seeding only for Python's random module, NumPy, and os.")

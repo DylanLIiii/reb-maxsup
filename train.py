@@ -317,6 +317,7 @@ def main(args):
         utils.mkdir(args.output_dir)
 
     utils.init_distributed_mode(args)
+    utils.seed_everything()
     print(args)
 
     device = torch.device(args.device)
