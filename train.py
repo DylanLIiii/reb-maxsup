@@ -130,7 +130,7 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
                     loss = aux_loss + ce_loss
                 else:
                     #dist_print("training with max_sup")
-                    aux_loss = max_suppression(output, epoch, args.begin_lambda, args.end_lambda, args.epochs)
+                    aux_loss = max_suppression(output, epoch, 0.1, 0.2, args.epochs)
                     ce_loss = criterion(output, target)
                     loss = aux_loss + ce_loss
 

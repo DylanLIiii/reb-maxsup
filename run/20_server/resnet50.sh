@@ -15,7 +15,6 @@ touch "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}/outputs.txt"
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4 /home/hengl/lbsm/rebuttals/train.py \
   --model ${MODEL} \
-  --amp \
   --data-path "${DATA_PATH}" \
   --workers 16 \
   --batch-size 512 \
@@ -30,7 +29,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --standalone --nnodes=1 --nproc_per_node=4
   --val-resize-size 256 \
   --val-crop-size 224 \
   --train-crop-size 224 \
-  --print-freq 100 \
+  --print-freq 20 \
   --output-dir "${OUTPUT_DIR}/${MODEL}/${EXPERIMENT_NAME}" \
   --label-smoothing ${LABLESMOOTHING} \
   --decompose ${DECOMPOSE} \
