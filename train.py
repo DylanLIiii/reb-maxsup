@@ -123,11 +123,13 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
                     if args.decompose:
                         #dist_print("training with label smoothing and decomposition")
                         aux_loss = label_smoothing(output, target, args.label_smoothing, args.decompose)
+                        ce_loss = criterion(output, target)
+                        loss = aux_loss + ce_loss
                     else:
                         #dist_print("training with label smoothing and no decomposition")
-                        aux_loss = label_smoothing(output, target, args.label_smoothing, args.decompose)
-                    ce_loss = criterion(output, target)
-                    loss = aux_loss + ce_loss
+                        label_smoothing_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
+                        loss = label_smoothing_ce(output, target)
+
                 else:
                     #dist_print("training with max_sup")
                     aux_loss = max_suppression(output, epoch, 0.1, 0.2, args.epochs)
