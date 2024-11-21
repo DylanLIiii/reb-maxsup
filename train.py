@@ -112,7 +112,7 @@ def train_one_epoch(model, criterion, optimizer, data_loader, device, epoch, arg
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             output = model(image)
             if bool(args.logit_penalty):
-                loss = logit_penalty(target, output, 1.0, 6e-4)
+                loss, logits = logit_penalty(target, output, 1.0, 6e-4)
             else:
                 if not args.max_sup and args.label_smoothing == 0:
                     # This is no ls
